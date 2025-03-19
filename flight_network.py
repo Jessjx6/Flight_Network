@@ -119,6 +119,24 @@ def calculate_network_statistics(G):
     
     return stats
 
+def plot_degree_distribution(G, filename="output/degree_distribution.png"):
+    import matplotlib.pyplot as plt
+    import os
+
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    degrees = [G.degree(n) for n in G.nodes()]
+
+    plt.figure(figsize=(8, 6))
+    plt.hist(degrees, bins=range(1, max(degrees)+2), edgecolor='black', alpha=0.7)
+    plt.title("Degree Distribution (Total Degree in DiGraph)")
+    plt.xlabel("Degree")
+    plt.ylabel("Number of Nodes")
+    
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Degree distribution figure saved to {filename}")
+
 # Calculate centrality measures
 def calculate_centrality_metrics(G):
     """Calculate various centrality metrics for the network"""
@@ -126,7 +144,7 @@ def calculate_centrality_metrics(G):
     degree_centrality = dict(G.degree())
     
     # Betweenness centrality (using approximation for large networks)
-    betweenness_centrality = nx.betweenness_centrality(G, k=100)
+    betweenness_centrality = nx.betweenness_centrality(G)
     
     # Eigenvector centrality
     try:
@@ -371,7 +389,6 @@ def visualize_top_centrality(G, centrality_dict, centrality_name, top_n=10, file
     plt.close()
     print(f"Top {centrality_name} centrality visualization saved to {filename}")
 
-# Function to visualize network after removing a hub
 # Function to visualize network after removing a hub
 def visualize_network_without_hub(G, hub_to_remove, filename=None):
     """Visualize the network after removing a specific hub airport"""
@@ -920,6 +937,8 @@ def main():
     print(f"Weakly connected components: {stats['num_weakly_connected']}")
     print(f"Largest component size: {stats['largest_wcc_size']} ({stats['largest_wcc_percentage']:.2f}%)")
     
+    plot_degree_distribution(G, filename="output/degree_distribution.png")
+
     print("\nCalculating centrality metrics...")
     degree_cent, betweenness_cent, eigenvector_cent = calculate_centrality_metrics(G)
     
@@ -952,7 +971,6 @@ def main():
     print("\nAnalyzing hub accuracy based on real-world flight patterns...")
     hub_accuracy_df = analyze_hub_accuracy(G)
 
-    # 在analyze_hub_accuracy调用后添加
     print("\nSaving hub accuracy data...")
     hub_accuracy_df.to_csv("output/hub_accuracy_data.csv", index=False)
     print("Hub accuracy data saved to output/hub_accuracy_data.csv")
@@ -971,6 +989,7 @@ def main():
         
     visualize_network_without_hub(G, top_10_degree[0][0], filename="output/network_without_top_hub.png")
     visualize_robustness_analysis(robustness_df, filename="output/robustness_analysis.png")
+
     
     # Community detection
     detect_and_visualize_communities(G, filename="output/community_detection.png")
